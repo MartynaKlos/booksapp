@@ -29,5 +29,6 @@ urlpatterns = [
     path('all-books/', books.AllBooksView.as_view(), name='all-books'),
     path('add-book/', books.AddBookView.as_view(), name='add-book'),
     path('update-book/<int:book_pk>/', books.UpdateBookView.as_view(), name='update-book'),
+    path('get-book-api/', books.AddBookFromGoogle.as_view(), name='add-google-book'),
     path('api/', include((router.urls, 'books'), namespace='api-books')),
 ]
