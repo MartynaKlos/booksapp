@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+<br><br>
+{% block content %}
+<br><br>
+<div class="container" align="center">
+<form method="POST" action="">
+    <div>
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
+    <br><br>
+{% if books %}
+    <div class="container">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+    crossorigin="anonymous">
+    <h3>Search results</h3>
+    <br><br>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th></th>
+                        <th scope="col">Author</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Publication date</th>
+                        <th scope="col">Pages</th>
+                        <th scope="col">Language</th>
+                        <th scope="col">ISBN</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for book in books %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td><img {% if book.cover_url %} src='{{ book.cover_url }}' {% else %} src='{% static "book.png" %}' {% endif %} height=65, width=50></td>
+                    <td>{{ book.author }}</td>
+                    <td>{{ book.title }}</td>
+                    <td>{{ book.publication_date }}</td>
+                    <td>{{ book.pages }}</td>
+                    <td>{{ book.language }}</td>
+                    <td>{{ book.isbn }}</td>
+                    <td>
+                        <form>
+                            <button formaction="{% url 'update-book' book_pk=book.pk %}" type="submit" class="btn btn-success">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% if message %}
+<h3>{{ message }}</h3>
+{% endif %}
+</div>
+{% endblock %}

@@ -26,7 +26,9 @@ router.register(r'books', books.BookViewSet, basename='books')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', books.MainView.as_view(), name='main'),
     path('all-books/', books.AllBooksView.as_view(), name='all-books'),
+    path('search-book/', books.SearchBooksView.as_view(), name='search-book'),
     path('add-book/', books.AddBookView.as_view(), name='add-book'),
     path('update-book/<int:book_pk>/', books.UpdateBookView.as_view(), name='update-book'),
     path('get-book-api/', books.AddBookFromGoogle.as_view(), name='add-google-book'),

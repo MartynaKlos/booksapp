@@ -2,6 +2,8 @@
 {% load static %}
 {% block content %}
 <div class="container">
+<button formaction="{% url 'search-book' %}" type="submit" class="btn btn-primary">Search for books</button>
+<br><br>
 <table class="table table-hover">
   <thead>
     <tr>

@@ -1,18 +1,23 @@
 from cmath import pi
+from re import template
 import requests
 
 from urllib.request import Request
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView, FormView, UpdateView
+from django.views.generic import ListView, FormView, UpdateView, TemplateView
 
 from rest_framework import viewsets, filters
 
 from booksapp.local_settings import API_KEY
-from .forms import AddBookForm, FindBookForm
+from .forms import AddBookForm, FindBookForm, SearchBookForm
 from .models import Book
 from .serializers import BookSerializer
+
+
+class MainView(TemplateView):
+    template_name = 'main.html'
 
 
 class BookViewSet(viewsets.ModelViewSet):
@@ -28,10 +33,43 @@ class AllBooksView(ListView):
     template_name = 'allbooks.html'
 
 
+class SearchBooksView(FormView):
+    template_name = 'search_book.html'
+    form_class = SearchBookForm
+    success_url = reverse_lazy('search-book')
+
+    def form_valid(self, form):
+        cd = form.cleaned_data
+        context = {
+            'form': form
+        }
+
+        books = Book.objects.all()
+        if cd['title']:
+            books = books.filter(title__icontains=cd['title'])
+        if cd['author']:
+            books = books.filter(author__icontains=cd['author'])
+        if cd['start_date']:
+            books = books.filter(publication_date__gte=cd['start_date'])
+        if cd['end_date']:
+            books = books.filter(publication_date__lte=cd['end_date'])
+
+        
+        context['books'] = books
+
+        if books.count() == 0:
+            context['message'] = "No events matched your search..."
+        return render(self.request, 'search_book.html', context)
+
+
 class AddBookView(FormView):
     form_class = AddBookForm
     template_name = 'add-book.html'
     success_url = reverse_lazy('all-books')
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 
 class UpdateBookView(UpdateView):
