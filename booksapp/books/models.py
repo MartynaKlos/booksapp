@@ -8,3 +8,4 @@ class Book (models.Model):
     isbn = models.CharField(max_length=20, unique=True)
     pages = models.IntegerField()
     language = models.CharField(max_length=120)
+    cover_url = models.CharField(max_length=2000, null=True)

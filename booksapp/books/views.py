@@ -1,10 +1,16 @@
+from cmath import pi
+import requests
+
+from urllib.request import Request
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import ListView, FormView, UpdateView
 
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 
-from .forms import AddBookForm
+from booksapp.local_settings import API_KEY
+from .forms import AddBookForm, FindBookForm
 from .models import Book
 from .serializers import BookSerializer
 
@@ -12,6 +18,8 @@ from .serializers import BookSerializer
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['author', 'title', 'publication_date']
 
 
 class AllBooksView(ListView):
@@ -32,3 +40,40 @@ class UpdateBookView(UpdateView):
     template_name = 'update-book.html'
     success_url = reverse_lazy('all-books')
     pk_url_kwarg = 'book_pk'
+
+
+class AddBookFromGoogle(FormView):
+    form_class = FindBookForm
+    template_name = 'add-book.html'
+    success_url = reverse_lazy('all-books')
+
+    def form_valid(self, form):
+        cd = form.cleaned_data
+
+        if not cd['author'] and not cd['title'] and not cd['isbn']:
+            return render(self.request, 'add-book.html', {'form': form, 'message': 'Form is empty!'})
+
+        author = cd['author']
+        title = cd['title']
+        isbn = cd['isbn']
+
+        q_param = 'q='
+        if cd['author']:
+            q_param += f'+inauthor:{author}'
+        if cd['title']:
+            q_param += f'+intitle:{title}'
+        if cd['isbn']:
+            q_param += f'+isbn:{isbn}'
+
+        url = f'https://www.googleapis.com/books/v1/volumes?{q_param}&key={API_KEY}'
+        response = requests.get(url).json()
+        bookinfo = response['items'][1]['volumeInfo']
+        author = bookinfo['authors'][0]
+        pub_date = bookinfo['publishedDate']
+        title = bookinfo['title']
+        pages = int(bookinfo['pageCount'])
+        language = bookinfo['language']
+        isbn = bookinfo['industryIdentifiers'][0]['identifier']
+        cover = bookinfo['imageLinks']['thumbnail']
+        Book.objects.create(title=title, author=author, publication_date=pub_date, pages=pages, language=language, isbn=isbn, cover_url=cover)
+        return super().form_valid(form)
