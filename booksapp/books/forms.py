@@ -11,7 +11,8 @@ class AddBookForm(ModelForm):
                   'isbn', 
                   'publication_date', 
                   'pages', 
-                  'language']
+                  'language',
+                  'cover_url']
 
 
 class FindBookForm(ModelForm):

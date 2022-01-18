@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, FormView, UpdateView
 
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 
 from booksapp.local_settings import API_KEY
 from .forms import AddBookForm, FindBookForm
@@ -18,6 +18,8 @@ from .serializers import BookSerializer
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['author', 'title', 'publication_date']
 
 
 class AllBooksView(ListView):
@@ -38,35 +40,6 @@ class UpdateBookView(UpdateView):
     template_name = 'update-book.html'
     success_url = reverse_lazy('all-books')
     pk_url_kwarg = 'book_pk'
-
-
-# class AddBookFromGoogle(View):
-#     def get(self, request, *args, **kwargs):
-#         form = FindBookForm()
-#         context = {
-#             'form': form
-#         }
-#         return render(request, 'add-book.html', context)
-
-#     def post(self, request, *args, **kwargs):
-#         form = FindBookForm(request.POST)
-#         context = {
-#             'form': form
-#         }
-#         if form.is_valid():
-#             author = form.cleaned_data['author']
-#             url = f'https://www.googleapis.com/books/v1/volumes?q=inauthor:{author}&key={API_KEY}'
-#             response = requests.get(url).json()
-#             bookinfo = response['items'][1]['volumeInfo']
-#             author = bookinfo['authors'][0]
-#             pub_date = bookinfo['publishedDate']
-#             title = bookinfo['title']
-#             pages = bookinfo['pageCount']
-#             language = bookinfo['language']
-#             isbn = bookinfo['industryIdentifiers'][0]['identifier']
-#             Book.objects.create(title=title, author=author, publication_date=pub_date, pages=pages, language=language)
-#             context['api_response'] = bookinfo
-#             return render(request, 'api.html', context)
 
 
 class AddBookFromGoogle(FormView):
@@ -94,12 +67,13 @@ class AddBookFromGoogle(FormView):
 
         url = f'https://www.googleapis.com/books/v1/volumes?{q_param}&key={API_KEY}'
         response = requests.get(url).json()
-        bookinfo = response['items'][0]['volumeInfo']
+        bookinfo = response['items'][1]['volumeInfo']
         author = bookinfo['authors'][0]
         pub_date = bookinfo['publishedDate']
         title = bookinfo['title']
-        pages = bookinfo['pageCount']
+        pages = int(bookinfo['pageCount'])
         language = bookinfo['language']
         isbn = bookinfo['industryIdentifiers'][0]['identifier']
-        Book.objects.create(title=title, author=author, publication_date=pub_date, pages=pages, language=language, isbn=isbn)
+        cover = bookinfo['imageLinks']['thumbnail']
+        Book.objects.create(title=title, author=author, publication_date=pub_date, pages=pages, language=language, isbn=isbn, cover_url=cover)
         return super().form_valid(form)

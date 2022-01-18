@@ -6,6 +6,7 @@
   <thead>
     <tr>
       <th scope="col">#</th>
+      <th></th>
       <th scope="col">Author</th>
       <th scope="col">Title</th>
       <th scope="col">Publication date</th>
@@ -19,6 +20,7 @@
 {% for book in books %}
     <tr>
       <th scope="row">{{ forloop.counter }}</th>
+      <td><img {% if book.cover_url %} src='{{ book.cover_url }}' {% else %} src='{% static "book.png" %}' {% endif %} height=65, width=50></td>
       <td>{{ book.author }}</td>
       <td>{{ book.title }}</td>
       <td>{{ book.publication_date }}</td>
