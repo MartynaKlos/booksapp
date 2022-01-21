@@ -1,11 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container">
-<form>
-  <button formaction="{% url 'search-book' %}" type="submit" class="btn btn-primary">Search for books</button>
-</form>
-<br><br>
+<!-- {{ books }} -->
 <table class="table table-hover">
   <thead>
     <tr>
@@ -24,16 +20,18 @@
 {% for book in books %}
     <tr>
       <th scope="row">{{ forloop.counter }}</th>
-      <td><img {% if book.cover_url %} src='{{ book.cover_url }}' {% else %} src='{% static "book.png" %}' {% endif %} height=65, width=50></td>
-      <td>{{ book.author }}</td>
+      <td><img {% if book.imageLinks.thumbnail %} src='{{ book.imageLinks.thumbnail }}' {% else %} src='{% static "book.png" %}' {% endif %} height=65, width=50></td>
+      <td>{{ book.authors|join:", "}}</td>
       <td>{{ book.title }}</td>
-      <td>{{ book.publication_date }}</td>
-      <td>{{ book.pages }}</td>
+      <td>{{ book.publishedDate }}</td>
+      <td>{{ book.pageCount }}</td>
       <td>{{ book.language }}</td>
-      <td>{{ book.isbn }}</td>
+      <td>{{ book.industryIdentifiers.0.identifier }}</td>
       <td>
-        <form>
-            <button formaction="{% url 'update-book' book_pk=book.pk %}" type="submit" class="btn btn-success">Update</button>
+        <form method="POST" action="{% url 'save-book' %}">
+        {% csrf_token %}
+            <input type="hidden" name='book' value="{{ book }}">
+            <button type="submit" class="btn btn-primary">Save</button>
         </form>
       </td>
     </tr>

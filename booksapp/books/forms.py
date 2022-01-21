@@ -45,7 +45,7 @@ class SearchBookForm(ModelForm):
                 'language']
 
     def __init__(self, *args, **kwargs):
-        super(FindBookForm, self).__init__(*args, **kwargs)
+        super(SearchBookForm, self).__init__(*args, **kwargs)
         self.fields['title'].required = False
         self.fields['author'].required = False
         self.fields['language'].required = False
